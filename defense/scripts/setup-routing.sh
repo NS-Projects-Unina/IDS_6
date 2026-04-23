@@ -12,6 +12,7 @@ iptables -A FORWARD -s 10.0.2.0/24 -d 10.0.1.0/24 -m state --state RELATED,ESTAB
 
 iptables -t nat -A POSTROUTING -s 10.0.1.0/24 ! -d 10.0.1.0/24 -j MASQUERADE
 
+rm -f /var/run/suricata.pid
 suricata -c /etc/suricata/suricata.yaml --af-packet -D --pidfile /var/run/suricata.pid
 
 exec tail -f /dev/null
