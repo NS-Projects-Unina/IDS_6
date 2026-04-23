@@ -13,4 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY scripts/setup-routing.sh /usr/local/bin/setup-routing.sh
 RUN chmod +x /usr/local/bin/setup-routing.sh
 
+COPY suricata/suricata.yaml /etc/suricata/suricata.yaml
+COPY suricata/rules/local.rules /etc/suricata/rules/local.rules
+
 CMD ["/usr/local/bin/setup-routing.sh"]

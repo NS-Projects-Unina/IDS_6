@@ -1,0 +1,66 @@
+%YAML 1.1
+---
+vars:
+  address-groups:
+    HOME_NET: "[10.0.2.0/24]"
+    EXTERNAL_NET: "[10.0.1.0/24]"
+    HTTP_SERVERS: "$HOME_NET"
+    SMTP_SERVERS: "$HOME_NET"
+    SQL_SERVERS: "$HOME_NET"
+    DNS_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+  port-groups:
+    HTTP_PORTS: "80"
+    FTP_PORTS: "21"
+    SHELLCODE_PORTS: "!80"
+    SSH_PORTS: "22"
+
+default-log-dir: /var/log/suricata
+
+stats:
+  enabled: no
+
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: yes
+            payload-printable: yes
+            packet: yes
+        - http
+        - ftp
+        - tls
+
+af-packet:
+  - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+  - interface: eth1
+    cluster-id: 98
+    cluster-type: cluster_flow
+    defrag: yes
+
+app-layer:
+  protocols:
+    ftp:
+      enabled: yes
+    http:
+      enabled: yes
+    tls:
+      enabled: yes
+
+default-rule-path: /etc/suricata/rules
+
+rule-files:
+  - local.rules
+
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config

@@ -1,0 +1,11 @@
+# Never commit the project spec
+../PROJECT_SPEC.md
+PROJECT_SPEC.md
+
+# Environment variables
+.env
+*.env
+
+# OS artifacts
+.DS_Store
+Thumbs.db

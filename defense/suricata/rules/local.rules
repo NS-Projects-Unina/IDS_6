@@ -1,0 +1,10 @@
+# CVE-2011-2523 — vsftpd 2.3.4 backdoor detection
+#
+# Il backdoor si attiva quando l'username FTP contiene ":)"
+# Dopo il trigger, vsftpd apre una shell su TCP/6200
+
+# Regola 1: rileva il trigger — USER con ":)" nell'username
+alert tcp $EXTERNAL_NET any -> $HOME_NET 21 (msg:"EXPLOIT vsftpd 2.3.4 Backdoor Trigger - smiley in FTP USER"; flow:to_server,established; content:"USER "; nocase; content:":)"; within:50; sid:9000001; rev:1;)
+
+# Regola 2: rileva la connessione alla backdoor shell su porta 6200
+alert tcp $EXTERNAL_NET any -> $HOME_NET 6200 (msg:"EXPLOIT vsftpd 2.3.4 Backdoor Shell Connection on port 6200"; flow:to_server; flags:S; sid:9000002; rev:1;)
