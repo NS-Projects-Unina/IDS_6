@@ -8,7 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iproute2 \
     iputils-ping \
     procps \
+    curl \
+    lsb-release \
     && rm -rf /var/lib/apt/lists/*
+
 
 COPY scripts/setup-routing.sh /usr/local/bin/setup-routing.sh
 RUN chmod +x /usr/local/bin/setup-routing.sh

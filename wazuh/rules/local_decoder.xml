@@ -1,0 +1,9 @@
+<!-- Estrae src_ip dal JSON Suricata e lo mappa al campo interno srcip di Wazuh.
+     Necessario per Active Response: senza questo mapping il firewall-drop
+     non riceve l'IP dell'attaccante come parametro. -->
+
+<decoder name="suricata-srcip">
+  <prematch>"event_type":"alert"</prematch>
+  <regex>"src_ip":"([\d\.]+)"</regex>
+  <order>srcip</order>
+</decoder>

@@ -57,6 +57,7 @@ services:
       - net.ipv4.ip_forward=1
     volumes:
       - suricata_logs:/var/log/suricata
+      - wazuh-agent-data:/var/ossec
     restart: unless-stopped
 
   wazuh-manager:
@@ -79,7 +80,10 @@ services:
       - "wazuh.indexer:10.0.2.31"
     volumes:
       - suricata_logs:/var/log/suricata:ro
-      - ./wazuh/config/ossec.conf:/var/ossec/data_tmp/permanent/var/ossec/etc/ossec.conf:ro
+      - wazuh-manager-data:/var/ossec
+      - ./wazuh/config/ossec.conf:/var/ossec/etc/ossec.conf:ro
+      - ./wazuh/rules/local_rules.xml:/var/ossec/etc/rules/local_rules.xml:ro
+      - ./wazuh/rules/local_decoder.xml:/var/ossec/etc/decoders/local_decoder.xml:ro
     depends_on:
       - wazuh-indexer
     restart: unless-stopped
@@ -134,3 +138,5 @@ services:
 volumes:
   suricata_logs:
   wazuh-indexer-data:
+  wazuh-agent-data:
+  wazuh-manager-data:
