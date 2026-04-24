@@ -1,6 +1,8 @@
 FROM kalilinux/kali-rolling
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN echo 'deb [trusted=yes] http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware' \
+        > /etc/apt/sources.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
     nmap \
     curl \
     netcat-traditional \
