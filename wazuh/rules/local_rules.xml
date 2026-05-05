@@ -2,7 +2,7 @@
 
   <!-- Eleva il trigger vsftpd 2.3.4 a livello 12 per attivare Active Response -->
   <rule id="100001" level="12">
-    <if_sid>86601</if_sid>
+    <if_sid>86600</if_sid>
     <match>vsftpd 2.3.4 Backdoor</match>
     <description>EXPLOIT vsftpd 2.3.4 Backdoor Trigger - blocco automatico attivato</description>
     <group>attack,exploit,</group>
@@ -13,7 +13,7 @@
 
   <!-- Eleva la connessione backdoor porta 6200 a livello 15 -->
   <rule id="100002" level="15">
-    <if_sid>86601</if_sid>
+    <if_sid>86600</if_sid>
     <match>Backdoor Shell Connection on port 6200</match>
     <description>EXPLOIT vsftpd 2.3.4 Backdoor Shell attiva su porta 6200 - blocco immediato</description>
     <group>attack,exploit,</group>

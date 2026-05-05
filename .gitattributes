@@ -1,0 +1,14 @@
+# Forza LF per tutti i file di testo, indipendentemente dall'OS del committente
+* text=auto
+
+# Script shell e file eseguiti dentro container Linux — devono essere LF
+*.sh text eol=lf
+*.rc text eol=lf
+defense/custom-firewall-drop text eol=lf
+attacker/entrypoint.sh text eol=lf
+
+# File binari — nessuna conversione
+*.tar binary
+*.deb binary
+*.png binary
+*.jpg binary

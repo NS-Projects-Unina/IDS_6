@@ -1,0 +1,51 @@
+#!/bin/bash
+# custom-firewall-drop
+# Active Response script per Wazuh 4.x + Suricata.
+#
+# Il binario built-in firewall-drop cerca il campo 'srcip' ma Suricata
+# scrive 'src_ip' nel JSON. Questo script legge correttamente 'src_ip'
+# dal payload JSON passato da Wazuh e applica la regola iptables.
+#
+# Posizionato in: /var/ossec/active-response/bin/custom-firewall-drop
+
+LOCAL=$(dirname "$0")
+cd "$LOCAL/../" || exit 1
+
+# Legge il JSON passato da Wazuh sullo stdin
+read -r INPUT
+
+# Estrae il comando (add / delete) e l'IP sorgente dal JSON di Suricata
+COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('command',''))" 2>/dev/null)
+SRC_IP=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('parameters',{}).get('alert',{}).get('data',{}).get('src_ip',''))" 2>/dev/null)
+
+# Log dell'operazione
+LOGFILE="/var/ossec/logs/active-responses.log"
+DATE=$(date +"%Y/%m/%d %T")
+
+if [ -z "$SRC_IP" ]; then
+    echo "$DATE custom-firewall-drop: ERROR - src_ip non trovato nel payload" >> "$LOGFILE"
+    exit 1
+fi
+
+echo "$DATE custom-firewall-drop: command=$COMMAND src_ip=$SRC_IP" >> "$LOGFILE"
+
+case "$COMMAND" in
+    add)
+        # Aggiunge la regola DROP in INPUT e FORWARD
+        /sbin/iptables -I INPUT  -s "$SRC_IP" -j DROP
+        /sbin/iptables -I FORWARD -s "$SRC_IP" -j DROP
+        echo "$DATE custom-firewall-drop: BLOCKED $SRC_IP" >> "$LOGFILE"
+        ;;
+    delete)
+        # Rimuove la regola dopo il timeout configurato in ossec.conf
+        /sbin/iptables -D INPUT  -s "$SRC_IP" -j DROP 2>/dev/null
+        /sbin/iptables -D FORWARD -s "$SRC_IP" -j DROP 2>/dev/null
+        echo "$DATE custom-firewall-drop: UNBLOCKED $SRC_IP" >> "$LOGFILE"
+        ;;
+    *)
+        echo "$DATE custom-firewall-drop: ERROR - comando sconosciuto: $COMMAND" >> "$LOGFILE"
+        exit 1
+        ;;
+esac
+
+exit 0

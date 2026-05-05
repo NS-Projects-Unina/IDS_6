@@ -27,7 +27,7 @@ services:
     tty: true
     stdin_open: true
     volumes:
-      - ./exploits:/exploits
+      - ./attacker/exploits:/exploits
     restart: unless-stopped
 
   victim:
@@ -40,6 +40,26 @@ services:
     ports:
       - "8080:80"
     tty: true
+    volumes:
+      - victim_etc:/etc
+      - victim_var_www:/var/www
+      - victim_var_log:/var/log
+
+  victim-agent:
+    build: ./victim-agent
+    container_name: victim-agent
+    network_mode: "service:victim"
+    pid: "service:victim"
+    environment:
+      - WAZUH_MANAGER=10.0.2.30
+      - WAZUH_AGENT_NAME=victim-agent
+      - WAZUH_REGISTRATION_SERVER=10.0.2.30
+    volumes:
+      - victim_etc:/victim_fs/etc:ro
+      - victim_var_www:/victim_fs/var/www:ro
+      - victim_var_log:/victim_fs/var/log:ro
+      - ./victim/ossec.conf:/var/ossec/etc/ossec.conf:ro
+    restart: unless-stopped
 
   defense:
     build: ./defense
@@ -58,6 +78,7 @@ services:
     volumes:
       - suricata_logs:/var/log/suricata
       - wazuh-agent-data:/var/ossec
+      - ./wazuh/config/ar.conf:/var/ossec/etc/shared/ar.conf:ro
     restart: unless-stopped
 
   wazuh-manager:
@@ -81,9 +102,9 @@ services:
     volumes:
       - suricata_logs:/var/log/suricata:ro
       - wazuh-manager-data:/var/ossec
-      - ./wazuh/config/ossec.conf:/var/ossec/etc/ossec.conf:ro
-      - ./wazuh/rules/local_rules.xml:/var/ossec/etc/rules/local_rules.xml:ro
-      - ./wazuh/rules/local_decoder.xml:/var/ossec/etc/decoders/local_decoder.xml:ro
+      - ./wazuh/config/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
+      - ./wazuh/rules/local_rules.xml:/wazuh-config-mount/etc/rules/local_rules.xml:ro
+      - ./wazuh/rules/local_decoder.xml:/wazuh-config-mount/etc/decoders/local_decoder.xml:ro
     depends_on:
       - wazuh-indexer
     restart: unless-stopped
@@ -137,6 +158,9 @@ services:
 
 volumes:
   suricata_logs:
+  wazuh-manager-data:
   wazuh-indexer-data:
   wazuh-agent-data:
-  wazuh-manager-data:
+  victim_etc:
+  victim_var_www:
+  victim_var_log:
