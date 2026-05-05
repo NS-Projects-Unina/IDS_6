@@ -138,6 +138,40 @@ Atteso: `4 packets transmitted, 0 received, 100% packet loss`
 
 ---
 
+## Fase 5 — Simulazione attività post-exploitation (HIDS)
+
+L'Active Response blocca la connessione entro pochi secondi dall'exploit, prima che l'attaccante possa agire sulla shell. Per dimostrare il layer HIDS del victim-agent, si simula manualmente l'azione che un attaccante avrebbe compiuto con accesso root:
+
+```bash
+# Simula: attaccante aggiunge un account backdoor persistente
+docker exec victim bash -c "echo 'backdooruser:x:0:0::/:/bin/bash' >> /etc/passwd"
+```
+
+Il victim-agent monitora `/etc/passwd` in modalità realtime tramite File Integrity Monitoring. Entro pochi secondi genera un alert:
+
+```bash
+docker exec wazuh-manager bash -c "grep -A8 'Rule: 550' /var/ossec/logs/alerts/alerts.log | grep -A8 'victim_fs/etc/passwd' | tail -15"
+```
+
+Output atteso:
+
+```
+Rule: 550 (level 7) -> 'Integrity checksum changed.'
+File '/victim_fs/etc/passwd' modified
+Mode: realtime
+Changed attributes: size,mtime,md5,sha1,sha256
+```
+
+Questo dimostra che il HIDS (victim-agent) avrebbe rilevato la persistenza lasciata dall'attaccante anche se l'AR non avesse bloccato in tempo.
+
+Ripulire dopo il test:
+
+```bash
+docker exec victim bash -c "sed -i '/backdooruser/d' /etc/passwd"
+```
+
+---
+
 ## Timeline dell'attacco
 
 | Tempo | Evento |
@@ -147,6 +181,7 @@ Atteso: `4 packets transmitted, 0 received, 100% packet loss`
 | t+7s | Active Response avviata: `custom-firewall-drop` eseguito su `defense` |
 | t+8s | iptables DROP aggiunto per 10.0.1.10 su INPUT e FORWARD |
 | t+8s | Connessione reverse shell caduta — attaccante isolato |
+| manuale | Simulazione post-exploitation → victim-agent FIM rileva modifica `/etc/passwd` → regola 550 |
 
 ---
 
