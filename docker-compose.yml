@@ -79,10 +79,11 @@ services:
       - suricata_logs:/var/log/suricata
       - wazuh-agent-data:/var/ossec
       - ./wazuh/config/ar.conf:/var/ossec/etc/shared/ar.conf:ro
+      - ./defense/ossec.conf:/var/ossec/etc/ossec.conf:ro
     restart: unless-stopped
 
   wazuh-manager:
-    image: wazuh/wazuh-manager:4.7.5
+    build: ./wazuh
     container_name: wazuh-manager
     hostname: wazuh-manager
     networks:

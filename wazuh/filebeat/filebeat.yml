@@ -1,0 +1,19 @@
+output.elasticsearch:
+  hosts: ["https://10.0.2.31:9200"]
+  protocol: https
+  username: admin
+  password: admin
+  ssl.verification_mode: none
+
+setup.template.enabled: false
+setup.template.json.enabled: false
+setup.ilm.enabled: false
+
+filebeat.modules:
+  - module: wazuh
+    alerts:
+      enabled: true
+    archives:
+      enabled: false
+
+logging.level: warning
