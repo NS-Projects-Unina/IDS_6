@@ -4,9 +4,14 @@ output.elasticsearch:
   username: admin
   password: admin
   ssl.verification_mode: none
+  index: "wazuh-alerts-4.x-%{+yyyy.MM.dd}"
 
-setup.template.enabled: false
-setup.template.json.enabled: false
+setup.template.name: "wazuh"
+setup.template.pattern: "wazuh-alerts-4.x-*"
+setup.template.json.enabled: true
+setup.template.json.path: '/etc/filebeat/fields.yml'
+setup.template.json.name: 'wazuh'
+setup.template.overwrite: true
 setup.ilm.enabled: false
 
 filebeat.modules:

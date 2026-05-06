@@ -17,7 +17,7 @@
 
 - Ambiente avviato con `docker compose up -d --build`
 - Tutti i container in stato `running` (`docker compose ps`)
-- Wazuh agent `defense-nids` connesso e Active (`docker exec wazuh-manager /var/ossec/bin/agent_control -l`)
+- Wazuh agent `defense` connesso e Active (`docker exec wazuh-manager /var/ossec/bin/agent_control -l`)
 
 ---
 

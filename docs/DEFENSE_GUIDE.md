@@ -14,17 +14,20 @@ Traffico di rete
       |
       +---> Suricata (NIDS)
       |       analisi in-line del traffico
-      |       scrivi alert in /var/log/suricata/eve.json
+      |       scrive alert in /var/log/suricata/eve.json
       |
       v
-[volume condiviso: suricata_logs]
+[defense — wazuh-agent]
+      |
+      +---> logcollector legge eve.json
+      +---> invia alert al wazuh-manager (TCP 1514)
       |
       v
 [wazuh-manager]
       |
-      +---> logcollector legge eve.json
       +---> analisi regole (local_rules.xml)
       +---> alert level >= 10 → Active Response
+      +---> invia comando AR all'agent sorgente (location: local)
       |
       v
 [defense — wazuh-execd]
@@ -111,7 +114,9 @@ docker exec defense bash -c "ls /var/log/suricata/ && tail -5 /var/log/suricata/
 
 ### Integrazione Suricata → Wazuh
 
-Il Wazuh Manager legge `eve.json` direttamente tramite un volume condiviso (`suricata_logs`), configurato in `ossec.conf`:
+Il **Wazuh Agent sul container `defense`** legge `eve.json` e lo invia al manager tramite la connessione cifrata TCP 1514. Questa architettura è necessaria per far funzionare correttamente `location: local` nell'Active Response — l'alert proviene dall'agent defense, quindi il comando viene inviato allo stesso agent che ha le iptables.
+
+La configurazione è in `defense/ossec.conf`:
 
 ```xml
 <localfile>
@@ -171,10 +176,11 @@ docker exec wazuh-manager bash -c "grep -E 'Rule: 100001|Rule: 100002' /var/osse
 
 ### Flusso di attivazione
 
-1. Wazuh Manager riceve alert di livello ≥ 10
-2. Invia comando di Active Response all'agente `defense-nids` (ID 001)
-3. L'agente esegue `custom-firewall-drop` con l'IP sorgente come argomento
-4. Lo script aggiunge una regola `iptables DROP` per quell'IP
+1. Il Wazuh Agent su `defense` legge un alert da `eve.json` e lo invia al manager
+2. Il manager applica le regole custom (100001/100002) e supera la soglia di livello 10
+3. Invia il comando di Active Response all'agente sorgente (`location: local` → `defense`)
+4. L'agente esegue `custom-firewall-drop` con l'IP sorgente estratto dal JSON
+5. Lo script aggiunge una regola `iptables DROP` per quell'IP
 
 ### Script custom-firewall-drop
 
@@ -203,18 +209,18 @@ Agisce su entrambe le chain:
 <command>
   <name>custom-firewall-drop</name>
   <executable>custom-firewall-drop</executable>
-  <expect>src_ip</expect>
   <timeout_allowed>yes</timeout_allowed>
 </command>
 
 <active-response>
   <command>custom-firewall-drop</command>
-  <location>defined-agent</location>
-  <agent_id>001</agent_id>
+  <location>local</location>
   <level>10</level>
   <timeout>600</timeout>
 </active-response>
 ```
+
+`location: local` invia il comando all'agent che ha generato l'alert — ovvero il Wazuh Agent su `defense`, che è l'unico a leggere `eve.json`. Questo evita di dipendere dall'ID dell'agent (che può cambiare ad ogni riavvio).
 
 Il blocco viene rimosso automaticamente dopo **600 secondi** (10 minuti).
 
