@@ -9,35 +9,7 @@ Laboratorio virtuale Docker per la dimostrazione della catena **VulnerabilitÃ  â
 
 ## Architettura
 
-```mermaid
-graph LR
-    subgraph attacker_net["attacker_net  10.0.1.0/24"]
-        ATT["attacker\nKali Linux\n10.0.1.10"]
-    end
-
-    subgraph defense_node["defense - Ubuntu dual-homed\n10.0.1.254 / 10.0.2.254"]
-        SUR["Suricata NIDS"]
-        FW["iptables"]
-        WA["Wazuh Agent\ndefense-nids"]
-    end
-
-    subgraph victim_net["victim_net  10.0.2.0/24"]
-        VIC["victim\nMetasploitable2\n10.0.2.10"]
-        VA["victim-agent\nWazuh Agent sidecar"]
-        WM["wazuh-manager\n10.0.2.30"]
-        WI["wazuh-indexer\nOpenSearch\n10.0.2.31"]
-        WD["wazuh-dashboard\nport 5601\n10.0.2.32"]
-    end
-
-    ATT -->|"exploit FTP"| defense_node
-    defense_node -->|"routing"| VIC
-    SUR -->|"eve.json"| WM
-    WA -->|"alert"| WM
-    VA -->|"FIM + logs"| WM
-    WM -->|"Active Response"| WA
-    WM --> WI
-    WI --> WD
-```
+![Architettura del laboratorio](docs/architecture.png)
 
 | Container | Ruolo | IP |
 |---|---|---|
